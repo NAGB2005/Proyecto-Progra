@@ -8,9 +8,7 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             AsigPelicula model = new AsigPelicula();
-
             PanelPrincipal view = new PanelPrincipal();
-
             ControladorP controller = new ControladorP(view, model);
         });
     }

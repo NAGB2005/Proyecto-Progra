@@ -70,7 +70,7 @@ public class PanelDetallePelicula extends JFrame {
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        durationLabel = new JLabel("Duración: 1h 45min (Ejemplo)");
+        durationLabel = new JLabel("Duración: " + pelicula.getDuracion());
         durationLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         durationLabel.setForeground(new Color(170, 170, 170));
         durationLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -128,7 +128,7 @@ public class PanelDetallePelicula extends JFrame {
             JButton dayButton = new JButton(day);
             dayButton.setBackground(new Color(51, 51, 51));
             dayButton.setForeground(Color.WHITE);
-            dayButton.setFont(new Font("Arial", Font.BOLD, 14));
+                dayButton.setFont(new Font("Arial", Font.BOLD, 14));
             dayButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
             dayButton.setFocusPainted(false);
             dayButton.setCursor(new Cursor(Cursor.HAND_CURSOR));

@@ -15,7 +15,6 @@ public class Asiento {
     public boolean isOcupado() { return ocupado; }
     public boolean isSeleccionado() { return seleccionado; }
 
-    // Este método solo puede cambiar la selección si el asiento no está ocupado.
     public void setSeleccionado(boolean seleccionado) {
         if (!ocupado) {
             this.seleccionado = seleccionado;

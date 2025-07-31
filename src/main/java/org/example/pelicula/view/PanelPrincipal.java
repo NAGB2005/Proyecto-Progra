@@ -17,7 +17,7 @@ public class PanelPrincipal extends JFrame {
     private InterfazPanelPrincipal listener;
 
     public PanelPrincipal() {
-        super("Multicines - Cartelera");
+        super("Multicines - CARTELERA");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 700);
         setLocationRelativeTo(null);
@@ -70,7 +70,7 @@ public class PanelPrincipal extends JFrame {
         topNavPanel.setBackground(Color.BLACK);
         topNavPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 20, 0));
 
-        String[] topNavItems = {"Cartelera"};
+        String[] topNavItems = {"CARTELERA"};
         for (String item : topNavItems) {
             JButton navButton = new JButton(item);
             navButton.setForeground(Color.WHITE);
@@ -103,7 +103,7 @@ public class PanelPrincipal extends JFrame {
         secondaryNavPanel.setBackground(new Color(34, 34, 34));
         secondaryNavPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 10));
 
-        String[] secondaryNavItems = {"Cartelera"};
+        String[] secondaryNavItems = {"CARTELERA"};
         for (String item : secondaryNavItems) {
             JLabel navLabel = new JLabel(item);
             navLabel.setForeground(new Color(170, 170, 170));
