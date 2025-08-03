@@ -12,11 +12,13 @@ public class Sala {
         this.asientos = new ArrayList<>();
 
         char rowChar = 'A';
+        int asientoIndex = 0;
         for (int row = 0; row < 8; row++) {
             for (int col = 1; col <= 10; col++) {
                 String seatName = String.valueOf(rowChar) + col;
                 boolean isOccupied = asientosOcupados.contains(seatName);
                 asientos.add(new Asiento(seatName, isOccupied));
+                asientoIndex++;
             }
             rowChar++;
         }

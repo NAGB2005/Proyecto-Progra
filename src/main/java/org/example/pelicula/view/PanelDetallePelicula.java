@@ -5,21 +5,18 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
+import java.util.List;
 
 public class PanelDetallePelicula extends JFrame {
 
-    private Pelicula pelicula;
+    private final Pelicula pelicula;
     private JLabel posterLabel;
-    private JLabel titleLabel;
-    private JLabel durationLabel;
-    private JLabel ageRatingLabel;
-    private JLabel statusLabel;
-    // Referencia al listener (que será el controlador)
-    private PeliculaActionListener listener;
+    private final InterfazPanelPrincipal listener;
 
-    public PanelDetallePelicula(Pelicula pelicula) {
+    public PanelDetallePelicula(Pelicula pelicula, InterfazPanelPrincipal listener) {
         super("Detalle de la Película: " + pelicula.getTitulo());
         this.pelicula = pelicula;
+        this.listener = listener;
 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(800, 600);
@@ -38,8 +35,7 @@ public class PanelDetallePelicula extends JFrame {
         backButton.setBorderPainted(false);
         backButton.setFocusPainted(false);
         backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        backButton.addActionListener(e -> dispose()); // Esto cierra solo esta ventana, no el programa
-
+        backButton.addActionListener(e -> dispose());
         topPanel.add(backButton, BorderLayout.WEST);
 
         JLabel mainTitleLabel = new JLabel(pelicula.getTitulo());
@@ -65,22 +61,22 @@ public class PanelDetallePelicula extends JFrame {
         infoPanel.setBackground(new Color(26, 26, 26));
         infoPanel.setBorder(new EmptyBorder(0, 20, 0, 0));
 
-        titleLabel = new JLabel("Título: " + pelicula.getTitulo());
+        JLabel titleLabel = new JLabel("Título: " + pelicula.getTitulo());
         titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        durationLabel = new JLabel("Duración: " + pelicula.getDuracion());
+        JLabel durationLabel = new JLabel("Duración: " + pelicula.getDuracion());
         durationLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         durationLabel.setForeground(new Color(170, 170, 170));
         durationLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        ageRatingLabel = new JLabel("Clasificación: " + pelicula.getClasificacionedad());
+        JLabel ageRatingLabel = new JLabel("Clasificación: " + pelicula.getClasificacionedad());
         ageRatingLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         ageRatingLabel.setForeground(new Color(170, 170, 170));
         ageRatingLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        statusLabel = new JLabel("Estado: " + pelicula.getEstado());
+        JLabel statusLabel = new JLabel("Estado: " + pelicula.getEstado());
         statusLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         statusLabel.setForeground(new Color(170, 170, 170));
         statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -128,7 +124,7 @@ public class PanelDetallePelicula extends JFrame {
             JButton dayButton = new JButton(day);
             dayButton.setBackground(new Color(51, 51, 51));
             dayButton.setForeground(Color.WHITE);
-                dayButton.setFont(new Font("Arial", Font.BOLD, 14));
+            dayButton.setFont(new Font("Arial", Font.BOLD, 14));
             dayButton.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
             dayButton.setFocusPainted(false);
             dayButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -154,11 +150,10 @@ public class PanelDetallePelicula extends JFrame {
                 javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP,
                 new Font("Arial", Font.BOLD, 16), Color.WHITE));
 
-        // Horarios de ejemplo. Ahora el botón notifica al controlador.
-        addScheduleButton(schedulesPanel, "14:30", true);
-        addScheduleButton(schedulesPanel, "17:00", false);
-        addScheduleButton(schedulesPanel, "19:30", true);
-        addScheduleButton(schedulesPanel, "22:00", true);
+        for (Pelicula.Funcion funcion : pelicula.getFunciones()) {
+            boolean available = funcion.getAsientosOcupados().size() < 80;
+            addScheduleButton(schedulesPanel, funcion.getHorario(), available);
+        }
 
         infoPanel.add(titleLabel);
         infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -180,17 +175,11 @@ public class PanelDetallePelicula extends JFrame {
         add(contentPanel, BorderLayout.CENTER);
     }
 
-    // Método para que el controlador se "registre" como listener
-    public void setPeliculaActionListener(PeliculaActionListener listener) {
-        this.listener = listener;
-    }
-
     private void loadImage(String imageName) {
         ImageIcon originalIcon = null;
         try {
             originalIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/" + imageName)));
         } catch (Exception e) {
-            System.err.println("Error al cargar la imagen: " + imageName + " - " + e.getMessage());
             BufferedImage placeholderImage = new BufferedImage(
                     posterLabel.getPreferredSize().width,
                     posterLabel.getPreferredSize().height,
@@ -242,10 +231,10 @@ public class PanelDetallePelicula extends JFrame {
             scheduleButton.setBackground(new Color(51, 51, 51));
             scheduleButton.setForeground(Color.WHITE);
             scheduleButton.addActionListener(e -> {
-                // Notificar al controlador que se seleccionó un horario
                 if (listener != null) {
                     listener.onScheduleSelected(pelicula, time);
                 }
+                dispose();
             });
         } else {
             scheduleButton.setBackground(new Color(80, 80, 80));

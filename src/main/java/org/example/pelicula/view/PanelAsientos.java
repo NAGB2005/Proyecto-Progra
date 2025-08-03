@@ -119,7 +119,7 @@ public class PanelAsientos extends JFrame {
         this.listener = listener;
     }
 
-    // Nuevo método para que el controlador actualice el display de asientos
+    //método para que el controlador actualice el display de asientos
     public void updateSeatsDisplay(List<Asiento> asientos) {
         seatsGridPanel.removeAll(); // Limpiar antes de redibujar
         char rowChar = 'A';

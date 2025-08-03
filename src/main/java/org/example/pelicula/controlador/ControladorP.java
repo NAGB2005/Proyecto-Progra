@@ -13,6 +13,8 @@ import org.example.pelicula.view.PeliculaActionListener;
 
 import javax.swing.JOptionPane;
 import java.util.List;
+import java.util.Optional;
+import java.util.ArrayList;
 
 public class ControladorP implements InterfazPanelAsientos, PeliculaActionListener, InterfazPanelPrincipal {
 
@@ -22,6 +24,7 @@ public class ControladorP implements InterfazPanelAsientos, PeliculaActionListen
 
     private AsigPelicula asigPeliculaModel;
     private Sala salaActual;
+    private Pelicula peliculaSeleccionada;
 
     public ControladorP(PanelPrincipal panelPrincipal, AsigPelicula asigPeliculaModel) {
         this.panelPrincipal = panelPrincipal;
@@ -39,11 +42,11 @@ public class ControladorP implements InterfazPanelAsientos, PeliculaActionListen
 
     @Override
     public void onPeliculaSelected(Pelicula pelicula) {
+        this.peliculaSeleccionada = pelicula;
         if (panelDetallePelicula != null) {
             panelDetallePelicula.dispose();
         }
-        panelDetallePelicula = new PanelDetallePelicula(pelicula);
-        panelDetallePelicula.setPeliculaActionListener(this);
+        panelDetallePelicula = new PanelDetallePelicula(pelicula, this);
         panelDetallePelicula.setVisible(true);
     }
 
@@ -52,15 +55,22 @@ public class ControladorP implements InterfazPanelAsientos, PeliculaActionListen
         if (panelAsientos != null) {
             panelAsientos.dispose();
         }
-        // Crea la sala con los datos de la película seleccionada
-        this.salaActual = new Sala(pelicula.getPrecioTicket(), pelicula.getAsientosOcupados());
 
-        panelAsientos = new PanelAsientos(pelicula.getTitulo(), hora, salaActual.precioTicket);
-        panelAsientos.setPeliculaActionListener(this);
+        Optional<Pelicula.Funcion> funcionOptional = pelicula.getFunciones().stream()
+                .filter(f -> f.getHorario().equals(hora))
+                .findFirst();
 
-        panelAsientos.updateSeatsDisplay(salaActual.getAsientos());
-        panelAsientos.updateSummaryDisplay(salaActual.getSelectedAsientos(), salaActual.getTotalPrice());
-        panelAsientos.setVisible(true);
+        if (funcionOptional.isPresent()) {
+            Pelicula.Funcion funcion = funcionOptional.get();
+            this.salaActual = new Sala(funcion.getPrecioTicket(), funcion.getAsientosOcupados());
+
+            panelAsientos = new PanelAsientos(pelicula.getTitulo(), hora, salaActual.precioTicket);
+            panelAsientos.setPeliculaActionListener(this);
+
+            panelAsientos.updateSeatsDisplay(salaActual.getAsientos());
+            panelAsientos.updateSummaryDisplay(salaActual.getSelectedAsientos(), salaActual.getTotalPrice());
+            panelAsientos.setVisible(true);
+        }
     }
 
     @Override
@@ -79,14 +89,33 @@ public class ControladorP implements InterfazPanelAsientos, PeliculaActionListen
             for (Asiento asiento : salaActual.getSelectedAsientos()) {
                 seats += asiento.getNombre() + " ";
             }
-            JOptionPane.showMessageDialog(panelAsientos,
-                    "¡Compra Exitosa!\nPelícula: " + panelAsientos.peliculaTitulo +
-                            "\nHora: " + panelAsientos.horaSeleccionada +
-                            "\nAsientos: " + seats.trim() +
-                            "\nTotal: " + String.format("$%.2f", salaActual.getTotalPrice()),
-                    "Confirmación de Compra", JOptionPane.INFORMATION_MESSAGE);
-            panelAsientos.dispose();
-            this.salaActual = null;
+
+            // Actualizar el modelo y el archivo de texto
+            List<String> nuevosAsientosOcupados = new ArrayList<>();
+            for (Asiento asiento : salaActual.getAsientos()) {
+                if (asiento.isOcupado() || asiento.isSeleccionado()) {
+                    nuevosAsientosOcupados.add(asiento.getNombre());
+                }
+            }
+
+            Optional<Pelicula.Funcion> funcionOptional = peliculaSeleccionada.getFunciones().stream()
+                    .filter(f -> f.getHorario().equals(panelAsientos.horaSeleccionada))
+                    .findFirst();
+
+            if (funcionOptional.isPresent()) {
+                Pelicula.Funcion funcion = funcionOptional.get();
+                funcion.setAsientosOcupados(nuevosAsientosOcupados);
+                asigPeliculaModel.guardarPeliculas();
+
+                JOptionPane.showMessageDialog(panelAsientos,
+                        "¡Compra Exitosa!\nPelícula: " + panelAsientos.peliculaTitulo +
+                                "\nHora: " + panelAsientos.horaSeleccionada +
+                                "\nAsientos: " + seats.trim() +
+                                "\nTotal: " + String.format("$%.2f", salaActual.getTotalPrice()),
+                        "Confirmación de Compra", JOptionPane.INFORMATION_MESSAGE);
+                panelAsientos.dispose();
+                this.salaActual = null;
+            }
         } else {
             JOptionPane.showMessageDialog(panelAsientos, "Por favor, selecciona al menos un asiento.", "Error de Selección", JOptionPane.WARNING_MESSAGE);
         }

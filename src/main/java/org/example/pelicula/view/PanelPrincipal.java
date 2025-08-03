@@ -1,5 +1,7 @@
 package org.example.pelicula.view;
+
 import org.example.pelicula.model.Pelicula;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -13,7 +15,6 @@ import java.util.Objects;
 public class PanelPrincipal extends JFrame {
 
     private JPanel movieGridPanel;
-    // Referencia al listener (que será el controlador)
     private InterfazPanelPrincipal listener;
 
     public PanelPrincipal() {
@@ -22,7 +23,6 @@ public class PanelPrincipal extends JFrame {
         setSize(1000, 700);
         setLocationRelativeTo(null);
         getContentPane().setBackground(new Color(26, 26, 26));
-
         setLayout(new BorderLayout());
 
         JPanel headerPanel = createHeaderPanel();
@@ -40,17 +40,14 @@ public class PanelPrincipal extends JFrame {
         movieGridPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 30));
 
         JScrollPane scroll = new JScrollPane(movieGridPanel);
-
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(new Color(26, 26, 26));
-
         mainContentPanel.add(scroll, BorderLayout.CENTER);
         add(mainContentPanel, BorderLayout.CENTER);
     }
 
-    // Método para que el controlador se "registre" como listener
     public void setPeliculaActionListener(InterfazPanelPrincipal listener) {
         this.listener = listener;
     }
@@ -121,7 +118,6 @@ public class PanelPrincipal extends JFrame {
         return secondaryNavPanel;
     }
 
-    // Método llamado por el controlador para mostrar las películas
     public void displayPeliculas(List<Pelicula> peliculas) {
         movieGridPanel.removeAll();
         for (Pelicula p : peliculas) {
@@ -152,7 +148,6 @@ public class PanelPrincipal extends JFrame {
         card.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evt) {
-                // Notificar al controlador que una película ha sido seleccionada
                 if (listener != null) {
                     listener.onPeliculaSelected(pelicula);
                 }
@@ -191,7 +186,7 @@ public class PanelPrincipal extends JFrame {
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         card.add(statusLabel);
 
-        card.add(Box.createVerticalGlue()); // Empuja el contenido hacia arriba
+        card.add(Box.createVerticalGlue());
 
         return card;
     }
@@ -201,7 +196,6 @@ public class PanelPrincipal extends JFrame {
         try {
             originalIcon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/" + imageName)));
         } catch (Exception e) {
-            System.err.println("Error al cargar la imagen: " + imageName + " - " + e.getMessage());
             BufferedImage placeholderImage = new BufferedImage(
                     label.getPreferredSize().width,
                     label.getPreferredSize().height,
