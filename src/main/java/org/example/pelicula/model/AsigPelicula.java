@@ -23,23 +23,38 @@ public class AsigPelicula {
         List<Pelicula> peliculasCargadas = new ArrayList<>();
 
         if (file.exists() && file.length() > 0) {
+            System.out.println("Archivo " + FILE_PATH + " encontrado. Cargando películas...");
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    peliculasCargadas.add(parsearLineaPelicula(line));
+                    if (line.trim().isEmpty()) continue; // Ignorar líneas en blanco
+                    Pelicula p = parsearLineaPelicula(line);
+                    if (p != null) {
+                        peliculasCargadas.add(p);
+                    }
                 }
             } catch (IOException e) {
+                System.err.println("Error al leer el archivo de texto: " + e.getMessage());
                 e.printStackTrace();
             }
         } else {
+            System.out.println("Archivo " + FILE_PATH + " no encontrado o vacío. Creando archivo por defecto.");
             peliculasCargadas = crearPeliculasPorDefecto();
             guardarPeliculas();
         }
         return peliculasCargadas;
     }
 
+    // Método corregido para validar la longitud de las partes
     private Pelicula parsearLineaPelicula(String line) {
-        String[] partes = line.split("~");
+        String[] partes = line.split("-");
+
+        // Validar que la línea tenga el formato correcto
+        if (partes.length < 5) {
+            System.err.println("Error: Formato de línea incorrecto en peliculas.txt -> " + line);
+            return null;
+        }
+
         String titulo = partes[0];
         String imagen = partes[1];
         String clasificacionedad = partes[2];
@@ -51,14 +66,16 @@ public class AsigPelicula {
             String[] funcionesStr = partes[5].split("\\|");
             for (String fStr : funcionesStr) {
                 String[] fPartes = fStr.split(":");
-                String horario = fPartes[0];
-                double precio = Double.parseDouble(fPartes[1]);
+                if (fPartes.length >= 2) {
+                    String horario = fPartes[0];
+                    double precio = Double.parseDouble(fPartes[1]);
 
-                List<String> asientosOcupados = new ArrayList<>();
-                if (fPartes.length > 2 && !fPartes[2].isEmpty()) {
-                    asientosOcupados = Arrays.asList(fPartes[2].split(","));
+                    List<String> asientosOcupados = new ArrayList<>();
+                    if (fPartes.length > 2 && !fPartes[2].isEmpty()) {
+                        asientosOcupados = Arrays.asList(fPartes[2].split(","));
+                    }
+                    funciones.add(new Pelicula.Funcion(horario, precio, asientosOcupados));
                 }
-                funciones.add(new Pelicula.Funcion(horario, precio, asientosOcupados));
             }
         }
         return new Pelicula(titulo, imagen, clasificacionedad, estado, duracion, funciones);
@@ -111,6 +128,7 @@ public class AsigPelicula {
                 writer.newLine();
             }
         } catch (IOException e) {
+            System.err.println("Error al escribir el archivo de texto: " + e.getMessage());
             e.printStackTrace();
         }
     }
