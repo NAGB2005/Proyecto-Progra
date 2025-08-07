@@ -1,18 +1,30 @@
 package org.example.pelicula.view;
+
 import org.example.pelicula.model.Pelicula;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Objects;
-import java.util.List;
 
+/**
+ * Vista para mostrar los detalles de una película específica.
+ * Incluye información como título, duración, clasificación, estado y los horarios disponibles para verla.
+ */
 public class PanelDetallePelicula extends JFrame {
 
     private final Pelicula pelicula;
     private JLabel posterLabel;
     private final InterfazPanelPrincipal listener;
 
+    /**
+     * Constructor del PanelDetallePelicula.
+     * @param pelicula El objeto Pelicula con los datos a mostrar.
+     * @param listener El oyente de acciones (controlador) que manejará los eventos del panel.
+     */
     public PanelDetallePelicula(Pelicula pelicula, InterfazPanelPrincipal listener) {
         super("Detalle de la Película: " + pelicula.getTitulo());
         this.pelicula = pelicula;
@@ -114,14 +126,20 @@ public class PanelDetallePelicula extends JFrame {
         dateSelectionPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         dateSelectionPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JLabel monthLabel = new JLabel("Julio");
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("MMMM", new Locale("es", "ES"));
+        String currentMonth = today.format(monthFormatter);
+
+        JLabel monthLabel = new JLabel(currentMonth.substring(0, 1).toUpperCase() + currentMonth.substring(1));
         monthLabel.setFont(new Font("Arial", Font.BOLD, 18));
         monthLabel.setForeground(Color.WHITE);
         dateSelectionPanel.add(monthLabel);
 
-        String[] days = {"Mié. 23", "Jue. 24", "Vie. 25", "Sáb. 26", "Dom. 27", "Lun. 28", "Mar. 29"};
-        for (String day : days) {
-            JButton dayButton = new JButton(day);
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("E. dd", new Locale("es", "ES"));
+
+        for (int i = 0; i < 7; i++) {
+            LocalDate date = today.plusDays(i);
+            JButton dayButton = new JButton(date.format(dayFormatter));
             dayButton.setBackground(new Color(51, 51, 51));
             dayButton.setForeground(Color.WHITE);
             dayButton.setFont(new Font("Arial", Font.BOLD, 14));
@@ -129,7 +147,7 @@ public class PanelDetallePelicula extends JFrame {
             dayButton.setFocusPainted(false);
             dayButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-            if (day.contains("24")) {
+            if (date.isEqual(today)) {
                 dayButton.setBackground(new Color(255, 204, 0));
                 dayButton.setForeground(new Color(26, 26, 26));
             }
@@ -175,6 +193,11 @@ public class PanelDetallePelicula extends JFrame {
         add(contentPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Carga y escala la imagen del póster de la película.
+     * Muestra una imagen de marcador de posición si el archivo de la imagen no se encuentra.
+     * @param imageName El nombre del archivo de imagen.
+     */
     private void loadImage(String imageName) {
         ImageIcon originalIcon = null;
         try {
@@ -206,6 +229,12 @@ public class PanelDetallePelicula extends JFrame {
         posterLabel.setIcon(new ImageIcon(scaledImage));
     }
 
+    /**
+     * Crea un elemento de leyenda visual para explicar el estado de las funciones.
+     * @param color El color del indicador.
+     * @param text El texto de la leyenda.
+     * @return Un JPanel que representa el elemento de la leyenda.
+     */
     private JPanel createLegendItem(Color color, String text) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         panel.setBackground(new Color(26, 26, 26));
@@ -220,6 +249,13 @@ public class PanelDetallePelicula extends JFrame {
         return panel;
     }
 
+    /**
+     * Agrega un botón de horario a un panel, con un comportamiento diferente si está disponible o no.
+     * Al hacer clic, notifica al controlador para abrir la siguiente vista.
+     * @param parentPanel El panel donde se agregará el botón.
+     * @param time El horario de la función.
+     * @param available Indica si la función tiene asientos disponibles.
+     */
     private void addScheduleButton(JPanel parentPanel, String time, boolean available) {
         JButton scheduleButton = new JButton(time);
         scheduleButton.setFont(new Font("Arial", Font.BOLD, 14));

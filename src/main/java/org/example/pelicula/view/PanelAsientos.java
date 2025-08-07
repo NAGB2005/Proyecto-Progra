@@ -1,7 +1,6 @@
-
 package org.example.pelicula.view;
-import org.example.pelicula.model.Asiento; // Importa la clase Asiento
 
+import org.example.pelicula.model.Asiento;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -9,22 +8,28 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+/**
+ * Vista para la selección de asientos de una función de cine.
+ * Permite al usuario ver el estado de los asientos, seleccionar los disponibles y ver un resumen de su compra.
+ */
 public class PanelAsientos extends JFrame {
 
-    // Mantener la información básica para display
+    /** Título de la película para esta función. */
     public String peliculaTitulo;
+    /** Hora de la función seleccionada. */
     public String horaSeleccionada;
-
     private JPanel seatsGridPanel;
     private JLabel selectedSeatsLabel;
     private JLabel totalPriceLabel;
-    // El precio ya no es una variable local, sino que se pasará
     private double ticketPrice;
-
-    // Referencia al listener (que será el controlador)
     private InterfazPanelAsientos listener;
 
-    // Se recibe el precio por ticket desde el controlador
+    /**
+     * Constructor del PanelAsientos.
+     * @param peliculaTitulo Título de la película.
+     * @param horaSeleccionada Hora de la función seleccionada.
+     * @param ticketPrice Precio del ticket por asiento.
+     */
     public PanelAsientos(String peliculaTitulo, String horaSeleccionada, double ticketPrice) {
         super("Selección de Asientos para " + peliculaTitulo + " - " + horaSeleccionada);
         this.peliculaTitulo = peliculaTitulo;
@@ -71,7 +76,6 @@ public class PanelAsientos extends JFrame {
         seatsGridPanel = new JPanel(new GridLayout(8, 10, 5, 5));
         seatsGridPanel.setBackground(new Color(26, 26, 26));
         seatsGridPanel.setBorder(new EmptyBorder(20, 0, 20, 0));
-        // populateSeats() ya no se llama aquí, lo hará el controlador al recibir los datos del modelo
         centerPanel.add(seatsGridPanel, BorderLayout.CENTER);
 
         add(centerPanel, BorderLayout.CENTER);
@@ -104,7 +108,6 @@ public class PanelAsientos extends JFrame {
         buyButton.setFocusPainted(false);
         buyButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         buyButton.addActionListener(e -> {
-            // Notificar al controlador que se hizo clic en "Comprar"
             if (listener != null) {
                 listener.onBuyTickets();
             }
@@ -114,78 +117,90 @@ public class PanelAsientos extends JFrame {
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    // Método para que el controlador se "registre" como listener
+    /**
+     * Asigna un oyente de eventos (normalmente el controlador) para las acciones del panel.
+     * @param listener El objeto que implementa la interfaz InterfazPanelAsientos.
+     */
     public void setPeliculaActionListener(InterfazPanelAsientos listener) {
         this.listener = listener;
     }
 
-    //método para que el controlador actualice el display de asientos
+    /**
+     * Actualiza la cuadrícula de asientos en la interfaz gráfica.
+     * Muestra visualmente qué asientos están ocupados, seleccionados o disponibles.
+     * @param asientos La lista de objetos Asiento con su estado actual.
+     */
     public void updateSeatsDisplay(List<Asiento> asientos) {
-        seatsGridPanel.removeAll(); // Limpiar antes de redibujar
-        char rowChar = 'A';
-        int seatCount = 0;
-        for (int row = 0; row < 8; row++) {
-            for (int col = 1; col <= 10; col++) {
-                String seatName = String.valueOf(rowChar) + col;
-                // Buscar el asiento por nombre en la lista recibida
-                Asiento currentAsiento = null;
-                if (seatCount < asientos.size()) {
-                    currentAsiento = asientos.get(seatCount);
-                    seatCount++;
-                }
+        SwingUtilities.invokeLater(() -> {
+            seatsGridPanel.removeAll();
+            char rowChar = 'A';
+            for (int row = 0; row < 8; row++) {
+                for (int col = 1; col <= 10; col++) {
+                    String seatName = String.valueOf(rowChar) + col;
+                    JButton seatButton = new JButton(seatName);
+                    seatButton.setPreferredSize(new Dimension(60, 40));
+                    seatButton.setFont(new Font("Arial", Font.BOLD, 12));
+                    seatButton.setFocusPainted(false);
 
-                JButton seatButton = new JButton(seatName);
-                seatButton.setPreferredSize(new Dimension(60, 40));
-                seatButton.setFont(new Font("Arial", Font.BOLD, 12));
-                seatButton.setFocusPainted(false);
+                    Asiento currentAsiento = asientos.stream()
+                            .filter(a -> a.getNombre().equals(seatName))
+                            .findFirst()
+                            .orElse(null);
 
-                if (currentAsiento != null) {
-                    if (currentAsiento.isOcupado()) {
-                        seatButton.setBackground(new Color(100, 100, 100)); // Gris oscuro para ocupado
-                        seatButton.setForeground(Color.WHITE);
-                        seatButton.setEnabled(false);
-                    } else if (currentAsiento.isSeleccionado()) {
-                        seatButton.setBackground(new Color(255, 204, 0)); // Amarillo de selección
-                        seatButton.setForeground(Color.BLACK); // Texto negro para contraste
-                        seatButton.addActionListener(new SeatSelectionListener(seatName)); // Pasa solo el nombre
+                    if (currentAsiento != null) {
+                        if (currentAsiento.isOcupado()) {
+                            seatButton.setBackground(new Color(100, 100, 100));
+                            seatButton.setForeground(Color.WHITE);
+                            seatButton.setEnabled(false);
+                        } else if (currentAsiento.isSeleccionado()) {
+                            seatButton.setBackground(new Color(255, 204, 0));
+                            seatButton.setForeground(Color.BLACK);
+                            seatButton.addActionListener(new SeatSelectionListener(seatName));
+                        } else {
+                            seatButton.setBackground(new Color(50, 50, 50));
+                            seatButton.setForeground(Color.WHITE);
+                            seatButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                            seatButton.addActionListener(new SeatSelectionListener(seatName));
+                        }
                     } else {
-                        seatButton.setBackground(new Color(50, 50, 50)); // Gris para disponible
-                        seatButton.setForeground(Color.WHITE);
-                        seatButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                        seatButton.addActionListener(new SeatSelectionListener(seatName)); // Pasa solo el nombre
+                        seatButton.setEnabled(false);
                     }
-                } else {
-                    // Si no hay información de asiento, deshabilitar o manejar como vacío
-                    seatButton.setBackground(new Color(80, 80, 80));
-                    seatButton.setForeground(Color.WHITE);
-                    seatButton.setEnabled(false);
+                    seatsGridPanel.add(seatButton);
                 }
-                seatsGridPanel.add(seatButton);
+                rowChar++;
             }
-            rowChar++;
-        }
-        seatsGridPanel.revalidate();
-        seatsGridPanel.repaint();
+            seatsGridPanel.revalidate();
+            seatsGridPanel.repaint();
+        });
     }
 
-    // Nuevo método para que el controlador actualice el resumen de la compra
+    /**
+     * Actualiza el resumen de la compra, mostrando los asientos seleccionados y el precio total.
+     * @param selectedAsientos Lista de asientos que el usuario ha seleccionado.
+     * @param totalPrice El precio total de los asientos seleccionados.
+     */
     public void updateSummaryDisplay(List<Asiento> selectedAsientos, double totalPrice) {
-        String seatsText = "Asientos seleccionados: ";
-        if (selectedAsientos.isEmpty()) {
-            seatsText += "Ninguno";
-        } else {
-            for (int i = 0; i < selectedAsientos.size(); i++) {
-                seatsText += selectedAsientos.get(i).getNombre();
-                if (i < selectedAsientos.size() - 1) {
-                    seatsText += ", ";
+        SwingUtilities.invokeLater(() -> {
+            StringBuilder seatsTextBuilder = new StringBuilder("Asientos seleccionados: ");
+            if (selectedAsientos.isEmpty()) {
+                seatsTextBuilder.append("Ninguno");
+            } else {
+                for (int i = 0; i < selectedAsientos.size(); i++) {
+                    seatsTextBuilder.append(selectedAsientos.get(i).getNombre());
+                    if (i < selectedAsientos.size() - 1) {
+                        seatsTextBuilder.append(", ");
+                    }
                 }
             }
-        }
-        selectedSeatsLabel.setText(seatsText);
-        totalPriceLabel.setText(String.format("Total: $%.2f", totalPrice));
+            selectedSeatsLabel.setText(seatsTextBuilder.toString());
+            totalPriceLabel.setText(String.format("Total: $%.2f", totalPrice));
+        });
     }
 
-    // El listener de los botones de asiento solo notifica al controlador el nombre del asiento
+    /**
+     * Oyente de acción interno para los botones de asiento.
+     * Llama al método del controlador para alternar la selección del asiento.
+     */
     private class SeatSelectionListener implements ActionListener {
         private String seatName;
 

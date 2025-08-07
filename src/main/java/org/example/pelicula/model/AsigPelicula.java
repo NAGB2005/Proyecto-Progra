@@ -4,20 +4,38 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
+/**
+ * <p>Clase que gestiona la lista de películas y su persistencia en un archivo de texto.</p>
+ * <p>Es responsable de cargar las películas al inicio de la aplicación y de guardar cualquier cambio
+ * (como la compra de asientos) en el archivo.</p>
+ */
 public class AsigPelicula {
 
     private List<Pelicula> peliculas;
     private static final String FILE_PATH = "peliculas.txt";
 
+    /**
+     * Constructor. Carga las películas desde el archivo o crea un archivo por defecto si no existe.
+     */
     public AsigPelicula() {
         this.peliculas = cargarOCrearPeliculas();
     }
 
+    /**
+     * Obtiene una copia de la lista de películas.
+     * @return Una nueva lista con las películas actuales.
+     */
     public List<Pelicula> getPeliculas() {
-        return peliculas;
+        return new ArrayList<>(peliculas);
     }
 
+    /**
+     * Carga las películas desde el archivo de texto. Si el archivo no existe o está vacío,
+     * crea una lista de películas por defecto y la guarda.
+     * @return La lista de películas cargadas o por defecto.
+     */
     private List<Pelicula> cargarOCrearPeliculas() {
         File file = new File(FILE_PATH);
         List<Pelicula> peliculasCargadas = new ArrayList<>();
@@ -27,7 +45,7 @@ public class AsigPelicula {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (line.trim().isEmpty()) continue; // Ignorar líneas en blanco
+                    if (line.trim().isEmpty()) continue;
                     Pelicula p = parsearLineaPelicula(line);
                     if (p != null) {
                         peliculasCargadas.add(p);
@@ -39,17 +57,20 @@ public class AsigPelicula {
             }
         } else {
             System.out.println("Archivo " + FILE_PATH + " no encontrado o vacío. Creando archivo por defecto.");
-            peliculasCargadas = crearPeliculasPorDefecto();
+            this.peliculas = crearPeliculasPorDefecto();
             guardarPeliculas();
+            peliculasCargadas = this.peliculas;
         }
         return peliculasCargadas;
     }
 
-    // Método corregido para validar la longitud de las partes
+    /**
+     * Parsea una línea del archivo de texto para crear un objeto Pelicula.
+     * @param line La línea de texto a parsear.
+     * @return Un objeto Pelicula si el formato es correcto, de lo contrario null.
+     */
     private Pelicula parsearLineaPelicula(String line) {
-        String[] partes = line.split("-");
-
-        // Validar que la línea tenga el formato correcto
+        String[] partes = line.split("~");
         if (partes.length < 5) {
             System.err.println("Error: Formato de línea incorrecto en peliculas.txt -> " + line);
             return null;
@@ -81,9 +102,13 @@ public class AsigPelicula {
         return new Pelicula(titulo, imagen, clasificacionedad, estado, duracion, funciones);
     }
 
+    /**
+     * Crea una lista de películas con datos por defecto para inicializar la aplicación.
+     * @return Una lista de películas predefinidas.
+     */
     private List<Pelicula> crearPeliculasPorDefecto() {
-        List<Pelicula> peliculas = new ArrayList<>();
-        peliculas.add(new Pelicula(
+        List<Pelicula> peliculasPorDefecto = new ArrayList<>();
+        peliculasPorDefecto.add(new Pelicula(
                 "Infinity Castle", "InfinityCaslte.jpg", "+13", "Pre_venta", "1h 50min",
                 Arrays.asList(
                         new Pelicula.Funcion("14:30", 7.50, Arrays.asList("A3", "A7", "C2", "C5")),
@@ -91,7 +116,7 @@ public class AsigPelicula {
                         new Pelicula.Funcion("21:00", 7.50, Arrays.asList("H1", "H2", "H3"))
                 )
         ));
-        peliculas.add(new Pelicula(
+        peliculasPorDefecto.add(new Pelicula(
                 "WALKING DEAD DEAD CITY", "The_walking_dead.jpg", "+15", "Venta", "1h 45min",
                 Arrays.asList(
                         new Pelicula.Funcion("15:00", 8.00, Arrays.asList("B1", "B2", "B3", "B4")),
@@ -99,17 +124,20 @@ public class AsigPelicula {
                         new Pelicula.Funcion("22:30", 8.00, Arrays.asList("H1", "H2"))
                 )
         ));
-        peliculas.add(new Pelicula(
+        peliculasPorDefecto.add(new Pelicula(
                 "The Purge", "The_purge.jpg", "+15", "Venta", "1h 35min",
                 Arrays.asList(
                         new Pelicula.Funcion("16:00", 7.50, new ArrayList<>()),
                         new Pelicula.Funcion("20:30", 7.50, Arrays.asList("A1", "A2"))
                 )
         ));
-        this.peliculas = peliculas;
-        return peliculas;
+        return peliculasPorDefecto;
     }
 
+    /**
+     * Guarda la lista actual de películas y sus estados (incluidos los asientos ocupados)
+     * en el archivo de texto.
+     */
     public void guardarPeliculas() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (Pelicula p : this.peliculas) {
@@ -120,7 +148,8 @@ public class AsigPelicula {
                 List<String> funcionesStr = new ArrayList<>();
                 for (Pelicula.Funcion f : p.getFunciones()) {
                     String asientosStr = String.join(",", f.getAsientosOcupados());
-                    funcionesStr.add(String.format("%s:%.2f:%s", f.getHorario(), f.getPrecioTicket(), asientosStr));
+                    String funcionFormateada = String.format(Locale.US, "%s:%.2f:%s", f.getHorario(), f.getPrecioTicket(), asientosStr);
+                    funcionesStr.add(funcionFormateada);
                 }
                 line.append(String.join("|", funcionesStr));
 

@@ -12,13 +12,22 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Vista principal que muestra la cartelera de películas disponibles.
+ * Permite al usuario navegar a través de las películas y seleccionar una para ver sus detalles.
+ */
 public class PanelPrincipal extends JFrame {
 
     private JPanel movieGridPanel;
     private InterfazPanelPrincipal listener;
 
+    /**
+     * Constructor por defecto de la vista principal.
+     * Se encarga de inicializar la interfaz de usuario sin mostrar películas.
+     * Es llamado por el constructor que recibe películas.
+     */
     public PanelPrincipal() {
-        super("Multicines - CARTELERA");
+        super("Multicines EPN - Cartelera");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 700);
         setLocationRelativeTo(null);
@@ -48,11 +57,25 @@ public class PanelPrincipal extends JFrame {
         add(mainContentPanel, BorderLayout.CENTER);
     }
 
+    /**
+     * Constructor de la vista principal que carga y muestra una lista de películas.
+     * @param peliculas La lista de películas a mostrar en la cartelera.
+     */
+    public PanelPrincipal(List<Pelicula> peliculas) {
+        this(); // Llama al constructor por defecto para construir la ventana.
+        displayPeliculas(peliculas); // Muestra las películas en la cartelera.
+    }
+
+    /**
+     * Asigna un oyente de eventos para las acciones de la vista principal.
+     * @param listener El objeto que implementa la interfaz InterfazPanelPrincipal.
+     */
     public void setPeliculaActionListener(InterfazPanelPrincipal listener) {
         this.listener = listener;
     }
 
     private JPanel createHeaderPanel() {
+        // ... (resto del código sin cambios) ...
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(Color.BLACK);
         headerPanel.setLayout(new BorderLayout());
@@ -96,6 +119,7 @@ public class PanelPrincipal extends JFrame {
     }
 
     private JPanel createSecondaryNavPanel() {
+        // ... (resto del código sin cambios) ...
         JPanel secondaryNavPanel = new JPanel();
         secondaryNavPanel.setBackground(new Color(34, 34, 34));
         secondaryNavPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 30, 10));
@@ -118,14 +142,21 @@ public class PanelPrincipal extends JFrame {
         return secondaryNavPanel;
     }
 
+    /**
+     * Muestra las películas en el panel de la cartelera.
+     * Crea una "tarjeta" visual para cada película y la agrega a la cuadrícula.
+     * @param peliculas La lista de objetos Pelicula a mostrar.
+     */
     public void displayPeliculas(List<Pelicula> peliculas) {
-        movieGridPanel.removeAll();
-        for (Pelicula p : peliculas) {
-            JPanel movieCard = createMovieCardPanel(p);
-            movieGridPanel.add(movieCard);
-        }
-        movieGridPanel.revalidate();
-        movieGridPanel.repaint();
+        SwingUtilities.invokeLater(() -> {
+            movieGridPanel.removeAll();
+            for (Pelicula p : peliculas) {
+                JPanel movieCard = createMovieCardPanel(p);
+                movieGridPanel.add(movieCard);
+            }
+            movieGridPanel.revalidate();
+            movieGridPanel.repaint();
+        });
     }
 
     private JPanel createMovieCardPanel(Pelicula pelicula) {
